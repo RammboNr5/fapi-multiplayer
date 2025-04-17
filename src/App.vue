@@ -710,9 +710,9 @@ function optimizeUpgrades() {
                         <tr class="border-b bg-gray-50">
                             <td colspan="5" class="px-4 py-2"></td>
                             <td class="px-4 py-2 font-bold bg-blue-50">Total Cost</td>
-                            <td class="px-4 py-2 font-bold bg-blue-50 border-r-2 border-blue-200">{{ totalUpgradeCost }}</td>
+                            <td class="px-4 py-2 font-bold bg-blue-50 border-r-2 border-blue-200" :class="{ 'text-green-600': totalUpgradeCost <= currentGp, 'text-red-500': totalUpgradeCost > currentGp }">{{ totalUpgradeCost }}</td>
                             <td class="px-4 py-2 font-bold bg-green-50">Total Cost</td>
-                            <td class="px-4 py-2 font-bold bg-green-50">{{ totalUpgradeCost2 }}</td>
+                            <td class="px-4 py-2 font-bold bg-green-50" :class="{ 'text-green-600': totalUpgradeCost2 <= currentGp, 'text-red-500': totalUpgradeCost2 > currentGp }">{{ totalUpgradeCost2 }}</td>
                         </tr>
 
                         <!-- Total Damage row -->
