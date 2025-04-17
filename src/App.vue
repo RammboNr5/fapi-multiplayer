@@ -746,7 +746,7 @@ function optimizeUpgrades() {
                                 <span class="ml-2">(+{{ desiredRewardXp - rewardXp }} | +{{ xpIncreasePercentage }}%)</span>
                             </td>
                             <td class="px-4 py-2 bg-green-50">
-                                Rank <select v-model="rank">
+                                Rank <select v-model="rank" @change="updateEverything">
                                     <option value="0">2500+</option>
                                     <option value="2">1001+</option>
                                     <option value="3">251+</option>
