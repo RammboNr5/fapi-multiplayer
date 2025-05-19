@@ -50,6 +50,9 @@ const desired2Charge = ref(0)
 const buffDamage = ref(0)
 const buffXp = ref(0)
 const buffGp = ref(0)
+const buffDamageNext = ref(0)
+const buffXpNext = ref(0)
+const buffGpNext = ref(0)
 
 const totalDamage = ref(20 + 21 + 22 + 23 + 24 + 25 + 26 + 27)
 const rewardXp = ref(12)
@@ -60,7 +63,9 @@ const levelAfterBossDesired2 = ref("")
 
 const rank = ref("0")
 
-onMounted(() => {updateEverything()})
+onMounted(() => {
+    updateEverything()
+})
 
 // Formatted efficiency values for display
 const formattedBasedamageEfficiency = computed(() => {
@@ -272,7 +277,7 @@ function calcLevelAfterBoss(gainedXp) {
     let actualXp = currentXp.value + gainedXp
 
     if (actualXp < requiredXp) {
-        return level + " (" + actualXp + "xp | " + (actualXp / requiredXp * 100).toFixed(2) + "%)"
+        return level + " ("+ (actualXp / requiredXp * 100).toFixed(2) + "%)"
     }
 
     do {
@@ -281,7 +286,7 @@ function calcLevelAfterBoss(gainedXp) {
         requiredXp = expUntilNextLevel(level)
     } while (actualXp >= requiredXp)
 
-    return level + " (" + actualXp + "xp | " + (actualXp / requiredXp * 100).toFixed(2) + "%)"
+    return level + " ("+ (actualXp / requiredXp * 100).toFixed(2) + "%)"
 }
 
 function getUpgradeCost(type, level) {
@@ -490,103 +495,206 @@ function optimizeUpgrades() {
 </script>
 
 <template>
-    <div class="container mx-auto px-4 py-8 max-w-full">
-        <header class="mb-8">
-            <!-- Header content if any -->
-        </header>
+    <div class="container mx-auto px-0 py-0 max-w-full">
 
         <main>
-            <!-- Stats Section -->
-            <div class="mb-8">
-                <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">Stats</h2>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div class="flex items-center">
-                        <label class="w-28 font-medium">Bosstier</label>
-                        <input type="number" v-model="bosstier" min="1" max="1000" @change="updateEverything" tabindex="1"
-                               class="border rounded px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                    </div>
-                    <div class="flex items-center">
-                        <label class="w-28 font-medium">Playerlevel</label>
-                        <input type="number" v-model="playerlevel" min="0" max="1000" @change="updateEverything" tabindex="2"
-                               class="border rounded px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                    </div>
-                    <div class="flex items-center">
-                        <label class="w-28 font-medium">Current XP</label>
-                        <input type="number" v-model="currentXp" min="0" max="100000" @change="updateEverything" tabindex="3"
-                               class="border rounded px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                    </div>
-                    <div class="flex items-center">
-                        <label class="w-28 font-medium">Current GP</label>
-                        <input type="number" v-model="currentGp" min="0" max="9999999" @change="updateEverything" tabindex="4"
-                               class="border rounded px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                    </div>
-                </div>
-            </div>
+            <div class="relative bg-[url(./assets/Background.png)] bg-no-repeat  bg-center z-0">
+                <div class="relative bg-[url(./assets/BackgroundInputs.png)] h-[900px] z-10">
+                    <input type="number" v-model="playerlevel" min="0" max="1000" @change="updateEverything"
+                           tabindex="1"
+                           class="absolute tex-center bg-opacity-0 text-white font-bold text-xl left-[300px] top-[25px] px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <input type="number" v-model="currentXp" min="1" max="1000" @change="updateEverything" tabindex="2"
+                           class="absolute border bg-white font-bold text-xl left-[179px] top-[73px] w-[608px] h-[51px] text-center px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <input type="number" v-model="currentGp" min="0" max="9999999" @change="updateEverything"
+                           tabindex="3"
+                           class="absolute bg-opacity-0 text-white font-bold text-xl left-[270px] top-[170px] px-2 py-1 w-32 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
 
-            <!-- Buffs Section -->
-            <div class="mb-8">
-                <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">Buffs(%)</h2>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div class="flex items-center">
-                        <label class="w-28 font-medium">Damage</label>
-                        <input type="number" v-model="buffDamage" @change="updateEverything" min="0" max="1000" tabindex="5"
-                               class="border rounded px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                    </div>
-                    <div class="flex items-center">
-                        <label class="w-28 font-medium">XP</label>
-                        <input type="number" v-model="buffXp" @change="updateEverything" min="0" max="1000" tabindex="6"
-                               class="border rounded px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                    </div>
-                    <div class="flex items-center">
-                        <label class="w-28 font-medium">GP</label>
-                        <input type="number" v-model="buffGp" @change="updateEverything" min="0" max="1000" tabindex="7"
-                               class="border rounded px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                    </div>
-                </div>
-            </div>
+                    <input type="number" v-model="bosstier" min="0" max="100000" @change="updateEverything" tabindex="4"
+                           class="absolute border bg-opacity-0 text-white font-bold text-xl text-center left-[50px] top-[340px] px-2 py-1 w-44 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
 
+                    <input type="number" v-model="buffDamage" @change="updateEverything" min="0" max="1000" tabindex="5"
+                           class="absolute bg-opacity-0 text-white text-center font-bold text-xl left-[240px] top-[340px] px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <input type="number" v-model="buffXp" @change="updateEverything" min="0" max="1000" tabindex="6"
+                           class="absolute bg-opacity-0 text-white text-center font-bold text-xl left-[345px] top-[340px] px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <input type="number" v-model="buffGp" @change="updateEverything" min="0" max="1000" tabindex="7"
+                           class="absolute bg-opacity-0 text-white text-center font-bold text-xl left-[450px] top-[340px] px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+
+                    <input type="number" v-model="buffDamageNext" @change="updateEverything" min="0" max="1000"
+                           tabindex="8"
+                           class="absolute bg-opacity-0 text-white text-center font-bold text-xl left-[555px] top-[340px] px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <input type="number" v-model="buffXpNext" @change="updateEverything" min="0" max="1000" tabindex="9"
+                           class="absolute bg-opacity-0 text-white text-center font-bold text-xl left-[661px] top-[340px] px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <input type="number" v-model="buffGpNext" @change="updateEverything" min="0" max="1000"
+                           tabindex="10"
+                           class="absolute bg-opacity-0 text-white text-center font-bold text-xl left-[767px] top-[340px] px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+
+                    <input type="number" v-model="basedamage" @change="updateEverything" min="0" max="9999"
+                           tabindex="11"
+                           class="absolute bg-opacity-0 text-white text-center font-bold text-xl left-[962px] top-[200px] px-2 py-1 w-[138px] focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="number" v-model="consecutive" @change="updateEverything" min="0" max="9999"
+                           tabindex="12"
+                           class="absolute bg-opacity-0 text-white text-center font-bold text-xl left-[1151px] top-[200px] px-2 py-1 w-[138px] focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <input type="number" v-model="xp" @change="updateEverything" min="0" max="9999" tabindex="13"
+                           class="absolute bg-opacity-0 text-white text-center font-bold text-xl left-[1340px] top-[200px] px-2 py-1 w-[138px] focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <input type="number" v-model="gp" @change="updateEverything" min="0" max="9999" tabindex="14"
+                           class="absolute bg-opacity-0 text-white text-center font-bold text-xl left-[1529px] top-[200px] px-2 py-1 w-[138px] focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <input type="number" v-model="charge" @change="updateEverything" min="0" max="9999" tabindex="15"
+                           class="absolute bg-opacity-0 text-white text-center font-bold text-xl left-[1718px] top-[200px] px-2 py-1 w-[138px] focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+
+                    <p class="absolute text-white font-bold text-xl left-[55px] top-[405px]">Current Boss</p>
+
+                    <p class="absolute text-white font-bold text-xl left-[90px] top-[463px]">Cost</p>
+                    <p class="absolute text-white font-bold text-xl left-[200px] top-[463px]">Damage</p>
+                    <p class="absolute text-white font-bold text-xl left-[310px] top-[463px]">GP/Damage</p>
+
+                    <input class="absolute font-bold text-xl text-center left-[55px] top-[523px] w-28 bg-opacity-0"
+                           disabled readonly v-model="basedamageCost">
+                    <input
+                        class="absolute font-bold text-xl text-center left-[185px] top-[523px] w-28 bg-opacity-0"
+                        :class="{ 'text-green-600': damageAfterBaseUpgrade === highestDamage }" disabled readonly
+                        v-model="damageAfterBaseUpgrade">
+                    <input
+                        class="absolute font-bold text-xl text-center left-[315px] top-[523px] w-28 bg-opacity-0"
+                        :class="{ 'text-green-600': basedamageEfficiency === bestEfficiency }" disabled readonly
+                        v-model="formattedBasedamageEfficiency">
+
+                    <input class="absolute font-bold text-xl text-center left-[55px] top-[598px] w-28 bg-opacity-0"
+                           disabled readonly v-model="consecutiveCost">
+                    <input
+                        class="absolute font-bold text-xl text-center left-[185px] top-[598px] w-28 bg-opacity-0"
+                        :class="{ 'text-green-600': damageAfterConsecutiveUpgrade === highestDamage }" disabled readonly
+                        v-model="damageAfterConsecutiveUpgrade">
+                    <input
+                        class="absolute font-bold text-xl text-center left-[315px] top-[598px] w-28 bg-opacity-0"
+                        :class="{ 'text-green-600': consecutiveEfficiency === bestEfficiency }" disabled readonly
+                        v-model="formattedConsecutiveEfficiency">
+
+                    <input class="absolute font-bold text-xl text-center left-[55px] top-[673px] w-28 bg-opacity-0"
+                           disabled readonly v-model="xpCost">
+                    <input
+                        class="absolute font-bold text-xl text-center left-[185px] top-[673px] w-28 bg-opacity-0"
+                        disabled readonly value="-">
+                    <input
+                        class="absolute font-bold text-xl text-center left-[315px] top-[673px] w-28 bg-opacity-0"
+                        disabled readonly value="-">
+
+                    <input class="absolute font-bold text-xl text-center left-[55px] top-[748px] w-28 bg-opacity-0"
+                           disabled readonly v-model="gpCost">
+                    <input
+                        class="absolute font-bold text-xl text-center left-[185px] top-[748px] w-28 bg-opacity-0"
+                        disabled readonly value="-">
+                    <input
+                        class="absolute font-bold text-xl text-center left-[315px] top-[748px] w-28 bg-opacity-0"
+                        disabled readonly value="-">
+
+                    <input class="absolute font-bold text-xl text-center left-[55px] top-[823px] w-28 bg-opacity-0"
+                           disabled readonly v-model="chargeCost">
+                    <input
+                        class="absolute font-bold text-xl text-center left-[185px] top-[823px] w-28 bg-opacity-0"
+                        :class="{ 'text-green-600': damageAfterChargeUpgrade === highestDamage }" disabled readonly
+                        v-model="damageAfterChargeUpgrade">
+                    <input
+                        class="absolute font-bold text-xl text-center left-[315px] top-[823px] w-28 bg-opacity-0"
+                        :class="{ 'text-green-600': chargeEfficiency === bestEfficiency }" disabled readonly
+                        v-model="formattedChargeEfficiency">
+
+                    <input type="number" v-model="desiredBasedamage" @change="updateEverything" min="0"
+                           max="9999" tabindex="16"
+                           class="absolute bg-opacity-0 left-[450px] top-[550px] px-2 py-1 w-23 h-[20px] text-center text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="number" v-model="desiredConsecutive" @change="updateEverything" min="0"
+                           max="9999" tabindex="17"
+                           class="absolute bg-opacity-0 left-[450px] top-[625px] px-2 py-1 w-23 h-[20px] text-center text-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <input type="number" v-model="desiredXp" @change="updateEverything" min="0" max="9999"
+                           tabindex="18"
+                           class="absolute bg-opacity-0 left-[450px] top-[702px] px-2 py-1 w-23 h-[20px] text-center text-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <input type="number" v-model="desiredGp" @change="updateEverything" min="0" max="9999"
+                           tabindex="19"
+                           class="absolute bg-opacity-0 left-[450px] top-[780px] px-2 py-1 w-23 h-[20px] text-center text-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <input type="number" v-model="desiredCharge" @change="updateEverything" min="0"
+                           max="9999" tabindex="20"
+                           class="absolute bg-opacity-0 left-[450px] top-[856px] px-2 py-1 w-23 h-[20px] text-center text-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+
+                    <input class="absolute font-bold text-xl text-center left-[680px] top-[523px] w-42 bg-opacity-0"
+                           disabled readonly v-model="totalDesiredDamage">
+                    <input class="absolute font-bold text-xl text-center left-[680px] top-[598px] w-42 bg-opacity-0"
+                           disabled readonly v-model="levelAfterBossDesired">
+                    <input class="absolute font-bold text-xl text-center left-[680px] top-[673px] w-42 bg-opacity-0"
+                           disabled readonly v-model="rewardXp">
+                    <input class="absolute font-bold text-xl text-center left-[680px] top-[748px] w-42 bg-opacity-0"
+                           disabled readonly v-model="rewardGp">
+                    <img v-if="totalUpgradeCost <= currentGp" src="./assets/SumGreen.png" alt="Sum green" class="absolute left-[580px] top-[815px]">
+                    <img v-else src="./assets/SumRed.png" alt="Sum red" class="absolute left-[580px] top-[815px]">
+                    <input class="absolute font-bold text-xl text-center left-[680px] top-[823px] w-42 bg-opacity-0"
+                           disabled readonly v-model="totalUpgradeCost">
+
+
+                    <p class="absolute text-white font-bold text-xl left-[955px] top-[405px]">Next Boss</p>
+
+                    <input type="number" v-model="desiredBasedamage" @change="updateEverything" min="0"
+                           max="9999" tabindex="21"
+                           class="absolute bg-opacity-0 left-[965px] top-[550px] px-2 py-1 w-23 h-[20px] text-center text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="number" v-model="desiredConsecutive" @change="updateEverything" min="0"
+                           max="9999" tabindex="22"
+                           class="absolute bg-opacity-0 left-[965px] top-[625px] px-2 py-1 w-23 h-[20px] text-center text-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <input type="number" v-model="desiredXp" @change="updateEverything" min="0" max="9999"
+                           tabindex="23"
+                           class="absolute bg-opacity-0 left-[965px] top-[702px] px-2 py-1 w-23 h-[20px] text-center text-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <input type="number" v-model="desiredGp" @change="updateEverything" min="0" max="9999"
+                           tabindex="24"
+                           class="absolute bg-opacity-0 left-[965px] top-[780px] px-2 py-1 w-23 h-[20px] text-center text-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <input type="number" v-model="desiredCharge" @change="updateEverything" min="0"
+                           max="9999" tabindex="25"
+                           class="absolute bg-opacity-0 left-[965px] top-[856px] px-2 py-1 w-23 h-[20px] text-center text-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+
+
+                    <input type="number" v-model="desiredBasedamage" @change="updateEverything" min="0"
+                           max="9999" tabindex="26"
+                           class="absolute bg-opacity-0 left-[1455px] top-[550px] px-2 py-1 w-23 h-[20px] text-center text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="number" v-model="desiredConsecutive" @change="updateEverything" min="0"
+                           max="9999" tabindex="27"
+                           class="absolute bg-opacity-0 left-[1455px] top-[625px] px-2 py-1 w-23 h-[20px] text-center text-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <input type="number" v-model="desiredXp" @change="updateEverything" min="0" max="9999"
+                           tabindex="28"
+                           class="absolute bg-opacity-0 left-[1455px] top-[702px] px-2 py-1 w-23 h-[20px] text-center text-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <input type="number" v-model="desiredGp" @change="updateEverything" min="0" max="9999"
+                           tabindex="29"
+                           class="absolute bg-opacity-0 left-[1455px] top-[780px] px-2 py-1 w-23 h-[20px] text-center text-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    <input type="number" v-model="desiredCharge" @change="updateEverything" min="0"
+                           max="9999" tabindex="30"
+                           class="absolute bg-opacity-0 left-[1455px] top-[856px] px-2 py-1 w-23 h-[20px] text-center text-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                </div>
+
+            </div>
             <!-- Upgrades and Planning Section -->
             <div>
                 <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">Upgrades and Planning</h2>
                 <div class="overflow-x-auto">
                     <table class="min-w-full bg-white">
-                        <thead>
-                        <tr class="bg-gray-100">
-                            <th class="px-4 py-2 text-left w-24">Current</th>
-                            <th class="px-4 py-2 text-left w-20">Level</th>
-                            <th class="px-4 py-2 text-left w-20">Cost</th>
-                            <th class="px-4 py-2 text-left w-20">Damage</th>
-                            <th class="px-4 py-2 text-left w-20">GP/Dmg</th>
-                            <th class="px-4 py-2 text-left w-24 bg-blue-50">Target 1</th>
-                            <th class="px-4 py-2 text-left w-20 bg-blue-50 border-r-2 border-blue-200">Cost</th>
-                            <th class="px-4 py-2 text-left w-24 bg-green-50">Target 2</th>
-                            <th class="px-4 py-2 text-left w-20 bg-green-50">Cost</th>
-                        </tr>
-                        </thead>
                         <tbody>
                         <!-- Base damage row -->
                         <tr class="border-b">
                             <td class="px-4 py-2 font-medium">Base damage</td>
                             <td class="px-4 py-2">
-                                <input type="number" v-model="basedamage" @change="updateEverything" min="0" max="9999" tabindex="8"
-                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+
                             </td>
-                            <td class="px-4 py-2">{{ basedamageCost }}</td>
-                            <td class="px-4 py-2" :class="{ 'text-green-600': damageAfterBaseUpgrade === highestDamage }">
+                            <td class="px-4 py-2"></td>
+                            <td class="px-4 py-2"
+                                :class="{ 'text-green-600': damageAfterBaseUpgrade === highestDamage }">
                                 {{ damageAfterBaseUpgrade }}
                             </td>
-                            <td class="px-4 py-2" :class="{ 'text-green-600': basedamageEfficiency === bestEfficiency }">
+                            <td class="px-4 py-2"
+                                :class="{ 'text-green-600': basedamageEfficiency === bestEfficiency }">
                                 {{ formattedBasedamageEfficiency }}
                             </td>
                             <td class="px-4 py-2 bg-blue-50">
-                                <input type="number" v-model="desiredBasedamage" @change="updateEverything" min="0" max="9999" tabindex="13"
-                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+
                             </td>
                             <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
                                 {{ calculateUpgradeCost(BASEDAMAGE, basedamage, desiredBasedamage) }}
                             </td>
                             <td class="px-4 py-2 bg-green-50">
-                                <input type="number" v-model="desired2Basedamage" @change="updateEverything" min="0" max="9999" tabindex="18"
+                                <input type="number" v-model="desired2Basedamage" @change="updateEverything" min="0"
+                                       max="9999" tabindex="18"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </td>
                             <td class="px-4 py-2 bg-green-50">
@@ -598,25 +706,26 @@ function optimizeUpgrades() {
                         <tr class="border-b">
                             <td class="px-4 py-2 font-medium">Consecutive</td>
                             <td class="px-4 py-2">
-                                <input type="number" v-model="consecutive" @change="updateEverything" min="0" max="9999" tabindex="9"
-                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+
                             </td>
                             <td class="px-4 py-2">{{ consecutiveCost }}</td>
-                            <td class="px-4 py-2" :class="{ 'text-green-600': damageAfterConsecutiveUpgrade === highestDamage }">
+                            <td class="px-4 py-2"
+                                :class="{ 'text-green-600': damageAfterConsecutiveUpgrade === highestDamage }">
                                 {{ damageAfterConsecutiveUpgrade }}
                             </td>
-                            <td class="px-4 py-2" :class="{ 'text-green-600': consecutiveEfficiency === bestEfficiency }">
+                            <td class="px-4 py-2"
+                                :class="{ 'text-green-600': consecutiveEfficiency === bestEfficiency }">
                                 {{ formattedConsecutiveEfficiency }}
                             </td>
                             <td class="px-4 py-2 bg-blue-50">
-                                <input type="number" v-model="desiredConsecutive" @change="updateEverything" min="0" max="9999" tabindex="14"
-                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+
                             </td>
                             <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
                                 {{ calculateUpgradeCost(CONSECUTIVE, consecutive, desiredConsecutive) }}
                             </td>
                             <td class="px-4 py-2 bg-green-50">
-                                <input type="number" v-model="desired2Consecutive" @change="updateEverything" min="0" max="9999" tabindex="19"
+                                <input type="number" v-model="desired2Consecutive" @change="updateEverything" min="0"
+                                       max="9999" tabindex="19"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2 bg-green-50">
@@ -628,21 +737,20 @@ function optimizeUpgrades() {
                         <tr class="border-b">
                             <td class="px-4 py-2 font-medium">XP</td>
                             <td class="px-4 py-2">
-                                <input type="number" v-model="xp" @change="updateEverything" min="0" max="9999" tabindex="10"
-                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+
                             </td>
                             <td class="px-4 py-2">{{ xpCost }}</td>
                             <td class="px-4 py-2">-</td>
                             <td class="px-4 py-2">-</td>
                             <td class="px-4 py-2 bg-blue-50">
-                                <input type="number" v-model="desiredXp" @change="updateEverything" min="0" max="9999" tabindex="15"
-                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+
                             </td>
                             <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
                                 {{ calculateUpgradeCost(XP, xp, desiredXp) }}
                             </td>
                             <td class="px-4 py-2 bg-green-50">
-                                <input type="number" v-model="desired2Xp" @change="updateEverything" min="0" max="9999" tabindex="20"
+                                <input type="number" v-model="desired2Xp" @change="updateEverything" min="0" max="9999"
+                                       tabindex="20"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2 bg-green-50">
@@ -654,21 +762,20 @@ function optimizeUpgrades() {
                         <tr class="border-b">
                             <td class="px-4 py-2 font-medium">GP</td>
                             <td class="px-4 py-2">
-                                <input type="number" v-model="gp" @change="updateEverything" min="0" max="9999" tabindex="11"
-                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+
                             </td>
                             <td class="px-4 py-2">{{ gpCost }}</td>
                             <td class="px-4 py-2">-</td>
                             <td class="px-4 py-2">-</td>
                             <td class="px-4 py-2 bg-blue-50">
-                                <input type="number" v-model="desiredGp" @change="updateEverything" min="0" max="9999" tabindex="16"
-                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+
                             </td>
                             <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
                                 {{ calculateUpgradeCost(GP, gp, desiredGp) }}
                             </td>
                             <td class="px-4 py-2 bg-green-50">
-                                <input type="number" v-model="desired2Gp" @change="updateEverything" min="0" max="9999" tabindex="21"
+                                <input type="number" v-model="desired2Gp" @change="updateEverything" min="0" max="9999"
+                                       tabindex="21"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2 bg-green-50">
@@ -680,25 +787,25 @@ function optimizeUpgrades() {
                         <tr class="border-b">
                             <td class="px-4 py-2 font-medium">Charge</td>
                             <td class="px-4 py-2">
-                                <input type="number" v-model="charge" @change="updateEverything" min="0" max="9999" tabindex="12"
-                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+
                             </td>
                             <td class="px-4 py-2">{{ chargeCost }}</td>
-                            <td class="px-4 py-2" :class="{ 'text-green-600': damageAfterChargeUpgrade === highestDamage }">
+                            <td class="px-4 py-2"
+                                :class="{ 'text-green-600': damageAfterChargeUpgrade === highestDamage }">
                                 {{ damageAfterChargeUpgrade }}
                             </td>
                             <td class="px-4 py-2" :class="{ 'text-green-600': chargeEfficiency === bestEfficiency }">
                                 {{ formattedChargeEfficiency }}
                             </td>
                             <td class="px-4 py-2 bg-blue-50">
-                                <input type="number" v-model="desiredCharge" @change="updateEverything" min="0" max="9999" tabindex="17"
-                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+
                             </td>
                             <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
                                 {{ calculateUpgradeCost(CHARGE, charge, desiredCharge) }}
                             </td>
                             <td class="px-4 py-2 bg-green-50">
-                                <input type="number" v-model="desired2Charge" @change="updateEverything" min="0" max="9999" tabindex="22"
+                                <input type="number" v-model="desired2Charge" @change="updateEverything" min="0"
+                                       max="9999" tabindex="22"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2 bg-green-50">
@@ -710,9 +817,15 @@ function optimizeUpgrades() {
                         <tr class="border-b bg-gray-50">
                             <td colspan="5" class="px-4 py-2"></td>
                             <td class="px-4 py-2 font-bold bg-blue-50">Total Cost</td>
-                            <td class="px-4 py-2 font-bold bg-blue-50 border-r-2 border-blue-200" :class="{ 'text-green-600': totalUpgradeCost <= currentGp, 'text-red-500': totalUpgradeCost > currentGp }">{{ totalUpgradeCost }}</td>
+                            <td class="px-4 py-2 font-bold bg-blue-50 border-r-2 border-blue-200"
+                                :class="{ 'text-green-600': totalUpgradeCost <= currentGp, 'text-red-500': totalUpgradeCost > currentGp }">
+                                {{ totalUpgradeCost }}
+                            </td>
                             <td class="px-4 py-2 font-bold bg-green-50">Total Cost</td>
-                            <td class="px-4 py-2 font-bold bg-green-50" :class="{ 'text-green-600': totalUpgradeCost2 <= currentGp, 'text-red-500': totalUpgradeCost2 > currentGp }">{{ totalUpgradeCost2 }}</td>
+                            <td class="px-4 py-2 font-bold bg-green-50"
+                                :class="{ 'text-green-600': totalUpgradeCost2 <= currentGp, 'text-red-500': totalUpgradeCost2 > currentGp }">
+                                {{ totalUpgradeCost2 }}
+                            </td>
                         </tr>
 
                         <!-- Total Damage row -->
@@ -722,7 +835,9 @@ function optimizeUpgrades() {
                             <td class="px-4 py-2 bg-blue-50"></td>
                             <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
                                 {{ totalDesiredDamage }}
-                                <span class="ml-2">(+{{ totalDesiredDamage - totalDamage }} | +{{ damageIncreasePercentage }}%)</span>
+                                <span class="ml-2">(+{{
+                                        totalDesiredDamage - totalDamage
+                                    }} | +{{ damageIncreasePercentage }}%)</span>
                             </td>
                             <td class="px-4 py-2 bg-green-50">
                                 <button @click="optimizeUpgrades" tabindex="22"
@@ -732,7 +847,9 @@ function optimizeUpgrades() {
                             </td>
                             <td class="px-4 py-2 bg-green-50">
                                 {{ totalDesiredDamage2 }}
-                                <span class="ml-2 ">(+{{ totalDesiredDamage2 - totalDamage }} | +{{ damageIncreasePercentage2 }}%)</span>
+                                <span class="ml-2 ">(+{{
+                                        totalDesiredDamage2 - totalDamage
+                                    }} | +{{ damageIncreasePercentage2 }}%)</span>
                             </td>
                         </tr>
 
@@ -743,23 +860,27 @@ function optimizeUpgrades() {
                             <td class="px-4 py-2 bg-blue-50"></td>
                             <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
                                 {{ desiredRewardXp }}
-                                <span class="ml-2">(+{{ desiredRewardXp - rewardXp }} | +{{ xpIncreasePercentage }}%)</span>
+                                <span class="ml-2">(+{{ desiredRewardXp - rewardXp }} | +{{
+                                        xpIncreasePercentage
+                                    }}%)</span>
                             </td>
                             <td class="px-4 py-2 bg-green-50">
                                 Rank <select v-model="rank" @change="updateEverything">
-                                    <option value="0">2500+</option>
-                                    <option value="2">1001+</option>
-                                    <option value="3">251+</option>
-                                    <option value="4">51+</option>
-                                    <option value="5">11+</option>
-                                    <option value="6">4+</option>
-                                    <option value="8">2+</option>
-                                    <option value="10">1</option>
-                                </select>
+                                <option value="0">2500+</option>
+                                <option value="2">1001+</option>
+                                <option value="3">251+</option>
+                                <option value="4">51+</option>
+                                <option value="5">11+</option>
+                                <option value="6">4+</option>
+                                <option value="8">2+</option>
+                                <option value="10">1</option>
+                            </select>
                             </td>
                             <td class="px-4 py-2 bg-green-50">
                                 {{ desired2RewardXp }}
-                                <span class="ml-2">(+{{ desired2RewardXp - rewardXp }} | +{{ xpIncreasePercentage2 }}%)</span>
+                                <span class="ml-2">(+{{ desired2RewardXp - rewardXp }} | +{{
+                                        xpIncreasePercentage2
+                                    }}%)</span>
                             </td>
                         </tr>
 
@@ -770,12 +891,16 @@ function optimizeUpgrades() {
                             <td class="px-4 py-2 bg-blue-50"></td>
                             <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
                                 {{ desiredRewardGp }}
-                                <span class="ml-2">(+{{ desiredRewardGp - rewardGp }} | +{{ gpIncreasePercentage }}%)</span>
+                                <span class="ml-2">(+{{ desiredRewardGp - rewardGp }} | +{{
+                                        gpIncreasePercentage
+                                    }}%)</span>
                             </td>
                             <td class="px-4 py-2 bg-green-50"></td>
                             <td class="px-4 py-2 bg-green-50">
                                 {{ desired2RewardGp }}
-                                <span class="ml-2">(+{{ desired2RewardGp - rewardGp }} | +{{ gpIncreasePercentage2 }}%)</span>
+                                <span class="ml-2">(+{{ desired2RewardGp - rewardGp }} | +{{
+                                        gpIncreasePercentage2
+                                    }}%)</span>
                             </td>
                         </tr>
                         <tr class="border-b">
