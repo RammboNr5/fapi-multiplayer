@@ -13,6 +13,7 @@ const bosstier = ref(1)
 const playerlevel = ref(0)
 const currentGp = ref(0)
 const currentXp = ref(0)
+const critCounter = ref(0)
 
 const basedamage = ref(0)
 const basedamageCost = ref(5)
@@ -166,13 +167,13 @@ const totalUpgradeCost2 = computed(() =>
 // Calculate total damage with desired upgrades
 const totalDesiredDamage = computed(() => {
     let desiredCharges = 8 + desiredCharge.value + Math.floor(playerlevel.value / 25);
-    return calcDamage(desiredCharges, desiredBasedamage.value, desiredConsecutive.value, desiredPercentageDamage.value, desiredCrit.value, playerlevel.value);
+    return calcDamage(desiredCharges, desiredBasedamage.value, desiredConsecutive.value, desiredPercentageDamage.value, desiredCrit.value, critCounter.value, playerlevel.value);
 })
 
 // Calculate total damage with desired upgrades - second set
 const totalDesiredDamage2 = computed(() => {
     let desiredCharges = 8 + desired2Charge.value + Math.floor(playerlevel.value / 25);
-    return calcDamage(desiredCharges, desired2Basedamage.value, desired2Consecutive.value, desired2PercentageDamage.value, desired2Crit.value, playerlevel.value);
+    return calcDamage(desiredCharges, desired2Basedamage.value, desired2Consecutive.value, desired2PercentageDamage.value, desired2Crit.value, critCounter.value, playerlevel.value);
 })
 
 // Calculate XP gain for target 1
@@ -252,7 +253,7 @@ function updateEverything() {
 
 function calcTotalDamage() {
     let charges = 8 + charge.value + Math.floor(playerlevel.value / 25);
-    totalDamage.value = calcDamage(charges, basedamage.value, consecutive.value, percentdamage.value, crit.value, playerlevel.value)
+    totalDamage.value = calcDamage(charges, basedamage.value, consecutive.value, percentdamage.value, crit.value, critCounter.value, playerlevel.value)
 }
 
 function calcEfficiency() {
@@ -269,8 +270,8 @@ function expUntilNextLevel(level) {
 
 function calcBasedamageEfficiency() {
     let charges = 8 + charge.value + Math.floor(playerlevel.value / 25);
-    let currentDamage = calcDamage(charges, basedamage.value, consecutive.value, percentdamage.value, crit.value, playerlevel.value)
-    let damageAfterUpgrade = calcDamage(charges, basedamage.value + 1, consecutive.value, percentdamage.value, crit.value, playerlevel.value)
+    let currentDamage = calcDamage(charges, basedamage.value, consecutive.value, percentdamage.value, crit.value, critCounter.value, playerlevel.value)
+    let damageAfterUpgrade = calcDamage(charges, basedamage.value + 1, consecutive.value, percentdamage.value, crit.value, critCounter.value, playerlevel.value)
     let cost = getUpgradeCost(BASEDAMAGE, basedamage.value)
     damageAfterBaseUpgrade.value = damageAfterUpgrade
     basedamageEfficiency.value = cost / (damageAfterUpgrade - currentDamage)
@@ -278,8 +279,8 @@ function calcBasedamageEfficiency() {
 
 function calcConsecutiveEfficiency() {
     let charges = 8 + charge.value + Math.floor(playerlevel.value / 25);
-    let currentDamage = calcDamage(charges, basedamage.value, consecutive.value, percentdamage.value, crit.value, playerlevel.value)
-    let damageAfterUpgrade = calcDamage(charges, basedamage.value, consecutive.value + 1, percentdamage.value, crit.value, playerlevel.value)
+    let currentDamage = calcDamage(charges, basedamage.value, consecutive.value, percentdamage.value, crit.value, critCounter.value, playerlevel.value)
+    let damageAfterUpgrade = calcDamage(charges, basedamage.value, consecutive.value + 1, percentdamage.value, crit.value, critCounter.value, playerlevel.value)
     let cost = getUpgradeCost(CONSECUTIVE, consecutive.value)
     damageAfterConsecutiveUpgrade.value = damageAfterUpgrade
     consecutiveEfficiency.value = cost / (damageAfterUpgrade - currentDamage)
@@ -287,8 +288,8 @@ function calcConsecutiveEfficiency() {
 
 function calcChargeEfficiency() {
     let charges = 8 + charge.value + Math.floor(playerlevel.value / 25);
-    let currentDamage = calcDamage(charges, basedamage.value, consecutive.value, percentdamage.value, crit.value, playerlevel.value)
-    let damageAfterUpgrade = calcDamage(charges + 1, basedamage.value, consecutive.value, percentdamage.value, crit.value, playerlevel.value)
+    let currentDamage = calcDamage(charges, basedamage.value, consecutive.value, percentdamage.value, crit.value, critCounter.value, playerlevel.value)
+    let damageAfterUpgrade = calcDamage(charges + 1, basedamage.value, consecutive.value, percentdamage.value, crit.value, critCounter.value, playerlevel.value)
     let cost = getUpgradeCost(CHARGE, charge.value)
     damageAfterChargeUpgrade.value = damageAfterUpgrade
     chargeEfficiency.value = cost / (damageAfterUpgrade - currentDamage)
@@ -296,8 +297,8 @@ function calcChargeEfficiency() {
 
 function calcPercentdamageEfficiency() {
     let charges = 8 + charge.value + Math.floor(playerlevel.value / 25);
-    let currentDamage = calcDamage(charges, basedamage.value, consecutive.value, percentdamage.value, crit.value, playerlevel.value)
-    let damageAfterUpgrade = calcDamage(charges, basedamage.value, consecutive.value, percentdamage.value + 1, crit.value, playerlevel.value)
+    let currentDamage = calcDamage(charges, basedamage.value, consecutive.value, percentdamage.value, crit.value, critCounter.value, playerlevel.value)
+    let damageAfterUpgrade = calcDamage(charges, basedamage.value, consecutive.value, percentdamage.value + 1, crit.value, critCounter.value, playerlevel.value)
     let cost = getUpgradeCost(CHARGE, charge.value)
     damageAfterChargeUpgrade.value = damageAfterUpgrade
     percentdamageEfficiency.value = cost / (damageAfterUpgrade - currentDamage)
@@ -305,9 +306,9 @@ function calcPercentdamageEfficiency() {
 
 function calcCritEfficiency() {
     let charges = 8 + charge.value + Math.floor(playerlevel.value / 25);
-    let currentDamage = calcDamage(charges, basedamage.value, consecutive.value, percentdamage.value, crit.value, playerlevel.value)
-    let damageAfterUpgrade = calcDamage(charges, basedamage.value, consecutive.value, percentdamage.value, crit.value + 1, playerlevel.value)
-    let cost = getUpgradeCost(CHARGE, charge.value)
+    let currentDamage = calcDamage(charges, basedamage.value, consecutive.value, percentdamage.value, crit.value, critCounter.value, playerlevel.value)
+    let damageAfterUpgrade = calcDamage(charges, basedamage.value, consecutive.value, percentdamage.value, crit.value + 1, critCounter.value, playerlevel.value)
+    let cost = getUpgradeCost(CRIT, charge.value)
     damageAfterChargeUpgrade.value = damageAfterUpgrade
     critEfficiency.value = cost / (damageAfterUpgrade - currentDamage)
 }
@@ -395,15 +396,23 @@ function calculateTotalUpgradeCost(
         + calculateUpgradeCost(CRIT, critStart, critEnd)
 }
 
-function calcDamage(charges, basedamageUpgrades, consecutiveUpgrades, percentDamageUpgrades, critUpgrades, level) {
+function calcDamage(charges, basedamageUpgrades, consecutiveUpgrades, percentDamageUpgrades, critUpgrades, critcounter, level) {
     let damage = 0
+    let tempCritCounter = critcounter
     for (let hit = 0; hit < charges; hit++) {
+        if (critUpgrades > 0) {
+            --tempCritCounter
+        }
         let newDamage = 20 + level
         newDamage += basedamageUpgrades * 3
         newDamage += hit * (1 + consecutiveUpgrades)
         newDamage *= (1 + buffDamage.value / 100)
         newDamage *= (1 + 0.01 * level)
         newDamage *= Math.pow(1.05, percentDamageUpgrades)
+        if (critUpgrades > 0 && tempCritCounter === 0) {
+            newDamage *= 5.0
+            tempCritCounter = 15 - critUpgrades
+        }
         damage += Math.ceil(newDamage)
     }
     return Math.ceil(damage)
@@ -454,6 +463,7 @@ function optimizeUpgrades() {
         consecutive.value,
         percentdamage.value,
         crit.value,
+        critCounter.value,
         playerlevel.value
     );
 
@@ -462,12 +472,14 @@ function optimizeUpgrades() {
     let bestConsecutive = consecutive.value;
     let bestCharge = charge.value;
     let bestPercentDamage = percentdamage.value;
+    let bestCrit = crit.value;
 
     // Start with current values
     let baseStart = basedamage.value;
     let consStart = consecutive.value;
     let chargeStart = charge.value;
     let percentDamageStart = percentdamage.value;
+    let critStart = crit.value;
 
     // Set reasonable limits for iteration
     // Calculate how many levels we could potentially buy based on GP
@@ -523,69 +535,94 @@ function optimizeUpgrades() {
         }
     }
 
+    let maxCritLevels = 0;
+    tempCost = 0;
+    tempLevel = critStart;
+    while (tempCost < availableGp) {
+        tempCost += getUpgradeCost(CRIT, tempLevel);
+        if (tempCost <= availableGp) {
+            maxCritLevels++;
+            tempLevel++;
+        } else {
+            break;
+        }
+    }
+
     // Limit search space to reasonable values
     // Add 1 to include the current value in our search
     const maxBase = baseStart + maxBaseLevels + 1;
     const maxCons = consStart + maxConsLevels + 1;
     const maxCharge = chargeStart + maxChargeLevels + 1;
     const maxPercentDamage = percentDamageStart + maxPercentDamageLevels + 1;
+    const maxCrit = critStart + maxCritLevels + 1;
+    console.log(maxBase + " " + maxCons + " " + maxCharge + " " + maxPercentDamage + " " + maxCrit)
 
     // Brute force through all possible combinations
     for (let b = baseStart; b <= maxBase; b++) {
         for (let c = consStart; c <= maxCons; c++) {
             for (let ch = chargeStart; ch <= maxCharge; ch++) {
                 for (let pd = percentDamageStart; pd <= maxPercentDamage; pd++) {
-                    // Skip if no upgrades
-                    if (b === baseStart && c === consStart && ch === chargeStart && pd === percentDamageStart) continue;
+                    for (let cr = critStart; cr <= maxCrit; cr++) {
+                        console.log("Trying: " + b + ", " + c + ", " + ch + ", " + pd + ", " + cr);
+                        // Skip if no upgrades
+                        if (b === baseStart && c === consStart && ch === chargeStart && pd === percentDamageStart && cr === critStart) continue;
 
-                    // Calculate cost for this combination
-                    let totalCost = 0;
+                        // Calculate cost for this combination
+                        let totalCost = 0;
 
-                    // Base damage cost
-                    for (let level = baseStart; level < b; level++) {
-                        totalCost += getUpgradeCost(BASEDAMAGE, level);
-                    }
+                        // Base damage cost
+                        for (let level = baseStart; level < b; level++) {
+                            totalCost += getUpgradeCost(BASEDAMAGE, level);
+                        }
 
-                    // Consecutive cost
-                    for (let level = consStart; level < c; level++) {
-                        totalCost += getUpgradeCost(CONSECUTIVE, level);
-                    }
+                        // Consecutive cost
+                        for (let level = consStart; level < c; level++) {
+                            totalCost += getUpgradeCost(CONSECUTIVE, level);
+                        }
 
-                    // Charge cost
-                    for (let level = chargeStart; level < ch; level++) {
-                        totalCost += getUpgradeCost(CHARGE, level);
-                    }
+                        // Charge cost
+                        for (let level = chargeStart; level < ch; level++) {
+                            totalCost += getUpgradeCost(CHARGE, level);
+                        }
 
-                    // percent damage cost
-                    for (let level = percentDamageStart; level < pd; level++) {
-                        totalCost += getUpgradeCost(PERCENTDAMAGE, level);
-                    }
+                        // percent damage cost
+                        for (let level = percentDamageStart; level < pd; level++) {
+                            totalCost += getUpgradeCost(PERCENTDAMAGE, level);
+                        }
 
-                    // Skip if cost exceeds available GP
-                    if (totalCost > availableGp) continue;
+                        // crit cost
+                        for (let level = critStart; level < cr; level++) {
+                            totalCost += getUpgradeCost(CRIT, level);
+                        }
 
-                    // Calculate damage with this combination
-                    const charges = 8 + ch + Math.floor(playerlevel.value / 25);
-                    const damage = calcDamage(charges, b, c, pd, playerlevel.value);
+                        // Skip if cost exceeds available GP
+                        if (totalCost > availableGp) continue;
 
-                    // Update best if this is better
-                    if (damage > bestDamage) {
-                        bestDamage = damage;
-                        bestBase = b;
-                        bestConsecutive = c;
-                        bestCharge = ch;
-                        bestPercentDamage = pd;
+                        // Calculate damage with this combination
+                        const charges = 8 + ch + Math.floor(playerlevel.value / 25);
+                        const damage = calcDamage(charges, b, c, pd, cr, critCounter.value, playerlevel.value);
+
+                        // Update best if this is better
+                        if (damage > bestDamage) {
+                            bestDamage = damage;
+                            bestBase = b;
+                            bestConsecutive = c;
+                            bestCharge = ch;
+                            bestPercentDamage = pd;
+                            bestCrit = cr;
+                        }
                     }
                 }
             }
         }
     }
-
+    console.log("done")
     // Update the desired values with the best combination
     desired2Basedamage.value = bestBase;
     desired2Consecutive.value = bestConsecutive;
     desired2Charge.value = bestCharge;
     desired2PercentageDamage.value = bestPercentDamage;
+    desired2Crit.value = bestCrit;
 }
 </script>
 
@@ -599,7 +636,7 @@ function optimizeUpgrades() {
             <!-- Stats Section -->
             <div class="mb-8">
                 <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">Stats</h2>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div class="flex items-center">
                         <label class="w-28 font-medium">Bosstier</label>
                         <input type="number" v-model="bosstier" min="1" max="1000" @change="updateEverything"
@@ -624,27 +661,33 @@ function optimizeUpgrades() {
                                tabindex="4"
                                class="border rounded px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                     </div>
+                    <div class="flex items-center">
+                        <label class="w-28 font-medium">Critcounter</label>
+                        <input type="number" v-model="critCounter" min="0" max="15" @change="updateEverything"
+                               tabindex="5"
+                               class="border rounded px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    </div>
                 </div>
             </div>
 
             <!-- Buffs Section -->
             <div class="mb-8">
                 <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">Buffs(%)</h2>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div class="flex items-center">
                         <label class="w-28 font-medium">Damage</label>
                         <input type="number" v-model="buffDamage" @change="updateEverything" min="0" max="1000"
-                               tabindex="5"
+                               tabindex="6"
                                class="border rounded px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                     </div>
                     <div class="flex items-center">
                         <label class="w-28 font-medium">XP</label>
-                        <input type="number" v-model="buffXp" @change="updateEverything" min="0" max="1000" tabindex="6"
+                        <input type="number" v-model="buffXp" @change="updateEverything" min="0" max="1000" tabindex="7"
                                class="border rounded px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                     </div>
                     <div class="flex items-center">
                         <label class="w-28 font-medium">GP</label>
-                        <input type="number" v-model="buffGp" @change="updateEverything" min="0" max="1000" tabindex="7"
+                        <input type="number" v-model="buffGp" @change="updateEverything" min="0" max="1000" tabindex="8"
                                class="border rounded px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                     </div>
                 </div>
@@ -674,7 +717,7 @@ function optimizeUpgrades() {
                             <td class="px-4 py-2 font-medium">Base damage</td>
                             <td class="px-4 py-2">
                                 <input type="number" v-model="basedamage" @change="updateEverything" min="0" max="9999"
-                                       tabindex="8"
+                                       tabindex="9"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </td>
                             <td class="px-4 py-2">{{ basedamageCost }}</td>
@@ -688,7 +731,7 @@ function optimizeUpgrades() {
                             </td>
                             <td class="px-4 py-2 bg-blue-50">
                                 <input type="number" v-model="desiredBasedamage" @change="updateEverything" min="0"
-                                       max="9999" tabindex="13"
+                                       max="9999" tabindex="16"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </td>
                             <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
@@ -696,7 +739,7 @@ function optimizeUpgrades() {
                             </td>
                             <td class="px-4 py-2 bg-green-50">
                                 <input type="number" v-model="desired2Basedamage" @change="updateEverything" min="0"
-                                       max="9999" tabindex="18"
+                                       max="9999" tabindex="23"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </td>
                             <td class="px-4 py-2 bg-green-50">
@@ -709,7 +752,7 @@ function optimizeUpgrades() {
                             <td class="px-4 py-2 font-medium">Consecutive</td>
                             <td class="px-4 py-2">
                                 <input type="number" v-model="consecutive" @change="updateEverything" min="0" max="9999"
-                                       tabindex="9"
+                                       tabindex="10"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2">{{ consecutiveCost }}</td>
@@ -723,7 +766,7 @@ function optimizeUpgrades() {
                             </td>
                             <td class="px-4 py-2 bg-blue-50">
                                 <input type="number" v-model="desiredConsecutive" @change="updateEverything" min="0"
-                                       max="9999" tabindex="14"
+                                       max="9999" tabindex="17"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
@@ -731,7 +774,7 @@ function optimizeUpgrades() {
                             </td>
                             <td class="px-4 py-2 bg-green-50">
                                 <input type="number" v-model="desired2Consecutive" @change="updateEverything" min="0"
-                                       max="9999" tabindex="19"
+                                       max="9999" tabindex="24"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2 bg-green-50">
@@ -744,7 +787,7 @@ function optimizeUpgrades() {
                             <td class="px-4 py-2 font-medium">XP</td>
                             <td class="px-4 py-2">
                                 <input type="number" v-model="xp" @change="updateEverything" min="0" max="9999"
-                                       tabindex="10"
+                                       tabindex="11"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2">{{ xpCost }}</td>
@@ -752,7 +795,7 @@ function optimizeUpgrades() {
                             <td class="px-4 py-2">-</td>
                             <td class="px-4 py-2 bg-blue-50">
                                 <input type="number" v-model="desiredXp" @change="updateEverything" min="0" max="9999"
-                                       tabindex="15"
+                                       tabindex="18"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
@@ -760,7 +803,7 @@ function optimizeUpgrades() {
                             </td>
                             <td class="px-4 py-2 bg-green-50">
                                 <input type="number" v-model="desired2Xp" @change="updateEverything" min="0" max="9999"
-                                       tabindex="20"
+                                       tabindex="25"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2 bg-green-50">
@@ -773,7 +816,7 @@ function optimizeUpgrades() {
                             <td class="px-4 py-2 font-medium">GP</td>
                             <td class="px-4 py-2">
                                 <input type="number" v-model="gp" @change="updateEverything" min="0" max="9999"
-                                       tabindex="11"
+                                       tabindex="12"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2">{{ gpCost }}</td>
@@ -781,7 +824,7 @@ function optimizeUpgrades() {
                             <td class="px-4 py-2">-</td>
                             <td class="px-4 py-2 bg-blue-50">
                                 <input type="number" v-model="desiredGp" @change="updateEverything" min="0" max="9999"
-                                       tabindex="16"
+                                       tabindex="19"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
@@ -789,7 +832,7 @@ function optimizeUpgrades() {
                             </td>
                             <td class="px-4 py-2 bg-green-50">
                                 <input type="number" v-model="desired2Gp" @change="updateEverything" min="0" max="9999"
-                                       tabindex="21"
+                                       tabindex="26"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2 bg-green-50">
@@ -802,7 +845,7 @@ function optimizeUpgrades() {
                             <td class="px-4 py-2 font-medium">Charge</td>
                             <td class="px-4 py-2">
                                 <input type="number" v-model="charge" @change="updateEverything" min="0" max="9999"
-                                       tabindex="12"
+                                       tabindex="13"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2">{{ chargeCost }}</td>
@@ -815,7 +858,7 @@ function optimizeUpgrades() {
                             </td>
                             <td class="px-4 py-2 bg-blue-50">
                                 <input type="number" v-model="desiredCharge" @change="updateEverything" min="0"
-                                       max="9999" tabindex="17"
+                                       max="9999" tabindex="20"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
@@ -823,7 +866,7 @@ function optimizeUpgrades() {
                             </td>
                             <td class="px-4 py-2 bg-green-50">
                                 <input type="number" v-model="desired2Charge" @change="updateEverything" min="0"
-                                       max="9999" tabindex="22"
+                                       max="9999" tabindex="27"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2 bg-green-50">
@@ -836,7 +879,7 @@ function optimizeUpgrades() {
                             <td class="px-4 py-2 font-medium">Percent damage</td>
                             <td class="px-4 py-2">
                                 <input type="number" v-model="percentdamage" @change="updateEverything" min="0" max="9999"
-                                       tabindex="12"
+                                       tabindex="14"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2">{{ percentdamageCost }}</td>
@@ -849,7 +892,7 @@ function optimizeUpgrades() {
                             </td>
                             <td class="px-4 py-2 bg-blue-50">
                                 <input type="number" v-model="desiredPercentageDamage" @change="updateEverything" min="0"
-                                       max="9999" tabindex="17"
+                                       max="9999" tabindex="21"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
@@ -857,13 +900,48 @@ function optimizeUpgrades() {
                             </td>
                             <td class="px-4 py-2 bg-green-50">
                                 <input type="number" v-model="desired2PercentageDamage" @change="updateEverything" min="0"
-                                       max="9999" tabindex="22"
+                                       max="9999" tabindex="28"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2 bg-green-50">
                                 {{ calculateUpgradeCost(PERCENTDAMAGE, percentdamage, desired2PercentageDamage) }}
                             </td>
                         </tr>
+
+                        <!-- Crit row -->
+                        <tr class="border-b">
+                            <td class="px-4 py-2 font-medium">Crit</td>
+                            <td class="px-4 py-2">
+                                <input type="number" v-model="crit" @change="updateEverything" min="0" max="14"
+                                       tabindex="15"
+                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                            </td>
+                            <td class="px-4 py-2">{{ critCost }}</td>
+                            <td class="px-4 py-2"
+                                :class="{ 'text-green-600': damageAfterCritUpgrade === highestDamage }">
+                                {{ damageAfterCritUpgrade }}
+                            </td>
+                            <td class="px-4 py-2" :class="{ 'text-green-600': critEfficiency === bestEfficiency }">
+                                {{ critEfficiency }}
+                            </td>
+                            <td class="px-4 py-2 bg-blue-50">
+                                <input type="number" v-model="desiredCrit" @change="updateEverything" min="0"
+                                       max="9999" tabindex="22"
+                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                            </td>
+                            <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
+                                {{ calculateUpgradeCost(CRIT, crit, desiredCrit) }}
+                            </td>
+                            <td class="px-4 py-2 bg-green-50">
+                                <input type="number" v-model="desired2Crit" @change="updateEverything" min="0"
+                                       max="9999" tabindex="29"
+                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                            </td>
+                            <td class="px-4 py-2 bg-green-50">
+                                {{ calculateUpgradeCost(CRIT, crit, desired2Crit) }}
+                            </td>
+                        </tr>
+
 
                         <!-- Total Cost row -->
                         <tr class="border-b bg-gray-50">
@@ -892,7 +970,7 @@ function optimizeUpgrades() {
                                     }} | +{{ damageIncreasePercentage }}%)</span>
                             </td>
                             <td class="px-4 py-2 bg-green-50">
-                                <button @click="optimizeUpgrades" tabindex="22"
+                                <button @click="optimizeUpgrades" tabindex="30"
                                         class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded focus:outline-none focus:ring-2 focus:ring-green-500">
                                     Optimize
                                 </button>
