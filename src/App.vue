@@ -239,7 +239,7 @@ const highestDamage = computed(() => {
 
 const bestEfficiency = computed(() => {
     const efficiencies = [basedamageEfficiency.value, consecutiveEfficiency.value, chargeEfficiency.value, percentdamageEfficiency.value, critEfficiency.value];
-    return Math.min(...efficiencies);
+    return Math.min(...efficiencies.filter(entry => entry > 0));
 })
 
 function updateEverything() {
@@ -307,8 +307,9 @@ function calcPercentdamageEfficiency() {
 function calcCritEfficiency() {
     let charges = 8 + charge.value + Math.floor(playerlevel.value / 25);
     let currentDamage = calcDamage(charges, basedamage.value, consecutive.value, percentdamage.value, crit.value, critCounter.value, playerlevel.value)
-    let damageAfterUpgrade = calcDamage(charges, basedamage.value, consecutive.value, percentdamage.value, crit.value + 1, critCounter.value, playerlevel.value)
+    let damageAfterUpgrade = calcDamage(charges, basedamage.value, consecutive.value, percentdamage.value, crit.value + 1, critCounter.value - 1, playerlevel.value)
     let cost = getUpgradeCost(CRIT, charge.value)
+    console.log(charges, currentDamage, damageAfterUpgrade, cost)
     damageAfterChargeUpgrade.value = damageAfterUpgrade
     critEfficiency.value = cost / (damageAfterUpgrade - currentDamage)
 }
@@ -409,9 +410,10 @@ function calcDamage(charges, basedamageUpgrades, consecutiveUpgrades, percentDam
         newDamage *= (1 + buffDamage.value / 100)
         newDamage *= (1 + 0.01 * level)
         newDamage *= Math.pow(1.05, percentDamageUpgrades)
-        if (critUpgrades > 0 && tempCritCounter === 0) {
+        if (critUpgrades > 0 && tempCritCounter <= 0) {
             newDamage *= 5.0
             tempCritCounter = 15 - critUpgrades
+            console.log("crit")
         }
         damage += Math.ceil(newDamage)
     }
@@ -747,12 +749,80 @@ function optimizeUpgrades() {
                             </td>
                         </tr>
 
+                        <!-- Percentage damage row -->
+                        <tr class="border-b">
+                            <td class="px-4 py-2 font-medium">Percent damage</td>
+                            <td class="px-4 py-2">
+                                <input type="number" v-model="percentdamage" @change="updateEverything" min="0" max="9999"
+                                       tabindex="10"
+                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                            </td>
+                            <td class="px-4 py-2">{{ percentdamageCost }}</td>
+                            <td class="px-4 py-2"
+                                :class="{ 'text-green-600': damageAfterPercentdamageUpgrade === highestDamage }">
+                                {{ damageAfterPercentdamageUpgrade }}
+                            </td>
+                            <td class="px-4 py-2" :class="{ 'text-green-600': percentdamageEfficiency === bestEfficiency }">
+                                {{ formattedPercentageDamageEfficiency }}
+                            </td>
+                            <td class="px-4 py-2 bg-blue-50">
+                                <input type="number" v-model="desiredPercentageDamage" @change="updateEverything" min="0"
+                                       max="9999" tabindex="17"
+                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                            </td>
+                            <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
+                                {{ calculateUpgradeCost(PERCENTDAMAGE, percentdamage, desiredPercentageDamage) }}
+                            </td>
+                            <td class="px-4 py-2 bg-green-50">
+                                <input type="number" v-model="desired2PercentageDamage" @change="updateEverything" min="0"
+                                       max="9999" tabindex="24"
+                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                            </td>
+                            <td class="px-4 py-2 bg-green-50">
+                                {{ calculateUpgradeCost(PERCENTDAMAGE, percentdamage, desired2PercentageDamage) }}
+                            </td>
+                        </tr>
+
+                        <!-- Crit row -->
+                        <tr class="border-b">
+                            <td class="px-4 py-2 font-medium">Crit</td>
+                            <td class="px-4 py-2">
+                                <input type="number" v-model="crit" @change="updateEverything" min="0" max="14"
+                                       tabindex="11"
+                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                            </td>
+                            <td class="px-4 py-2">{{ critCost }}</td>
+                            <td class="px-4 py-2"
+                                :class="{ 'text-green-600': damageAfterCritUpgrade === highestDamage }">
+                                {{ damageAfterCritUpgrade }}
+                            </td>
+                            <td class="px-4 py-2" :class="{ 'text-green-600': critEfficiency === bestEfficiency }">
+                                {{ critEfficiency }}
+                            </td>
+                            <td class="px-4 py-2 bg-blue-50">
+                                <input type="number" v-model="desiredCrit" @change="updateEverything" min="0"
+                                       max="9999" tabindex="18"
+                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                            </td>
+                            <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
+                                {{ calculateUpgradeCost(CRIT, crit, desiredCrit) }}
+                            </td>
+                            <td class="px-4 py-2 bg-green-50">
+                                <input type="number" v-model="desired2Crit" @change="updateEverything" min="0"
+                                       max="9999" tabindex="25"
+                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                            </td>
+                            <td class="px-4 py-2 bg-green-50">
+                                {{ calculateUpgradeCost(CRIT, crit, desired2Crit) }}
+                            </td>
+                        </tr>
+
                         <!-- Consecutive row -->
                         <tr class="border-b">
                             <td class="px-4 py-2 font-medium">Consecutive</td>
                             <td class="px-4 py-2">
                                 <input type="number" v-model="consecutive" @change="updateEverything" min="0" max="9999"
-                                       tabindex="10"
+                                       tabindex="12"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2">{{ consecutiveCost }}</td>
@@ -766,7 +836,7 @@ function optimizeUpgrades() {
                             </td>
                             <td class="px-4 py-2 bg-blue-50">
                                 <input type="number" v-model="desiredConsecutive" @change="updateEverything" min="0"
-                                       max="9999" tabindex="17"
+                                       max="9999" tabindex="19"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
@@ -774,40 +844,11 @@ function optimizeUpgrades() {
                             </td>
                             <td class="px-4 py-2 bg-green-50">
                                 <input type="number" v-model="desired2Consecutive" @change="updateEverything" min="0"
-                                       max="9999" tabindex="24"
+                                       max="9999" tabindex="26"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2 bg-green-50">
                                 {{ calculateUpgradeCost(CONSECUTIVE, consecutive, desired2Consecutive) }}
-                            </td>
-                        </tr>
-
-                        <!-- XP row -->
-                        <tr class="border-b">
-                            <td class="px-4 py-2 font-medium">XP</td>
-                            <td class="px-4 py-2">
-                                <input type="number" v-model="xp" @change="updateEverything" min="0" max="9999"
-                                       tabindex="11"
-                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                            </td>
-                            <td class="px-4 py-2">{{ xpCost }}</td>
-                            <td class="px-4 py-2">-</td>
-                            <td class="px-4 py-2">-</td>
-                            <td class="px-4 py-2 bg-blue-50">
-                                <input type="number" v-model="desiredXp" @change="updateEverything" min="0" max="9999"
-                                       tabindex="18"
-                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                            </td>
-                            <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
-                                {{ calculateUpgradeCost(XP, xp, desiredXp) }}
-                            </td>
-                            <td class="px-4 py-2 bg-green-50">
-                                <input type="number" v-model="desired2Xp" @change="updateEverything" min="0" max="9999"
-                                       tabindex="25"
-                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                            </td>
-                            <td class="px-4 py-2 bg-green-50">
-                                {{ calculateUpgradeCost(XP, xp, desired2Xp) }}
                             </td>
                         </tr>
 
@@ -816,7 +857,7 @@ function optimizeUpgrades() {
                             <td class="px-4 py-2 font-medium">GP</td>
                             <td class="px-4 py-2">
                                 <input type="number" v-model="gp" @change="updateEverything" min="0" max="9999"
-                                       tabindex="12"
+                                       tabindex="13"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2">{{ gpCost }}</td>
@@ -824,7 +865,7 @@ function optimizeUpgrades() {
                             <td class="px-4 py-2">-</td>
                             <td class="px-4 py-2 bg-blue-50">
                                 <input type="number" v-model="desiredGp" @change="updateEverything" min="0" max="9999"
-                                       tabindex="19"
+                                       tabindex="20"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
@@ -832,11 +873,40 @@ function optimizeUpgrades() {
                             </td>
                             <td class="px-4 py-2 bg-green-50">
                                 <input type="number" v-model="desired2Gp" @change="updateEverything" min="0" max="9999"
-                                       tabindex="26"
+                                       tabindex="27"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2 bg-green-50">
                                 {{ calculateUpgradeCost(GP, gp, desired2Gp) }}
+                            </td>
+                        </tr>
+
+                        <!-- XP row -->
+                        <tr class="border-b">
+                            <td class="px-4 py-2 font-medium">XP</td>
+                            <td class="px-4 py-2">
+                                <input type="number" v-model="xp" @change="updateEverything" min="0" max="9999"
+                                       tabindex="14"
+                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                            </td>
+                            <td class="px-4 py-2">{{ xpCost }}</td>
+                            <td class="px-4 py-2">-</td>
+                            <td class="px-4 py-2">-</td>
+                            <td class="px-4 py-2 bg-blue-50">
+                                <input type="number" v-model="desiredXp" @change="updateEverything" min="0" max="9999"
+                                       tabindex="21"
+                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                            </td>
+                            <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
+                                {{ calculateUpgradeCost(XP, xp, desiredXp) }}
+                            </td>
+                            <td class="px-4 py-2 bg-green-50">
+                                <input type="number" v-model="desired2Xp" @change="updateEverything" min="0" max="9999"
+                                       tabindex="28"
+                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                            </td>
+                            <td class="px-4 py-2 bg-green-50">
+                                {{ calculateUpgradeCost(XP, xp, desired2Xp) }}
                             </td>
                         </tr>
 
@@ -845,7 +915,7 @@ function optimizeUpgrades() {
                             <td class="px-4 py-2 font-medium">Charge</td>
                             <td class="px-4 py-2">
                                 <input type="number" v-model="charge" @change="updateEverything" min="0" max="9999"
-                                       tabindex="13"
+                                       tabindex="15"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2">{{ chargeCost }}</td>
@@ -858,7 +928,7 @@ function optimizeUpgrades() {
                             </td>
                             <td class="px-4 py-2 bg-blue-50">
                                 <input type="number" v-model="desiredCharge" @change="updateEverything" min="0"
-                                       max="9999" tabindex="20"
+                                       max="9999" tabindex="22"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
@@ -866,7 +936,7 @@ function optimizeUpgrades() {
                             </td>
                             <td class="px-4 py-2 bg-green-50">
                                 <input type="number" v-model="desired2Charge" @change="updateEverything" min="0"
-                                       max="9999" tabindex="27"
+                                       max="9999" tabindex="29"
                                        class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                             </td>
                             <td class="px-4 py-2 bg-green-50">
@@ -874,73 +944,7 @@ function optimizeUpgrades() {
                             </td>
                         </tr>
 
-                        <!-- Percentage damage row -->
-                        <tr class="border-b">
-                            <td class="px-4 py-2 font-medium">Percent damage</td>
-                            <td class="px-4 py-2">
-                                <input type="number" v-model="percentdamage" @change="updateEverything" min="0" max="9999"
-                                       tabindex="14"
-                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                            </td>
-                            <td class="px-4 py-2">{{ percentdamageCost }}</td>
-                            <td class="px-4 py-2"
-                                :class="{ 'text-green-600': damageAfterPercentdamageUpgrade === highestDamage }">
-                                {{ damageAfterPercentdamageUpgrade }}
-                            </td>
-                            <td class="px-4 py-2" :class="{ 'text-green-600': percentdamageEfficiency === bestEfficiency }">
-                                {{ formattedPercentageDamageEfficiency }}
-                            </td>
-                            <td class="px-4 py-2 bg-blue-50">
-                                <input type="number" v-model="desiredPercentageDamage" @change="updateEverything" min="0"
-                                       max="9999" tabindex="21"
-                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                            </td>
-                            <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
-                                {{ calculateUpgradeCost(PERCENTDAMAGE, percentdamage, desiredPercentageDamage) }}
-                            </td>
-                            <td class="px-4 py-2 bg-green-50">
-                                <input type="number" v-model="desired2PercentageDamage" @change="updateEverything" min="0"
-                                       max="9999" tabindex="28"
-                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                            </td>
-                            <td class="px-4 py-2 bg-green-50">
-                                {{ calculateUpgradeCost(PERCENTDAMAGE, percentdamage, desired2PercentageDamage) }}
-                            </td>
-                        </tr>
 
-                        <!-- Crit row -->
-                        <tr class="border-b">
-                            <td class="px-4 py-2 font-medium">Crit</td>
-                            <td class="px-4 py-2">
-                                <input type="number" v-model="crit" @change="updateEverything" min="0" max="14"
-                                       tabindex="15"
-                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                            </td>
-                            <td class="px-4 py-2">{{ critCost }}</td>
-                            <td class="px-4 py-2"
-                                :class="{ 'text-green-600': damageAfterCritUpgrade === highestDamage }">
-                                {{ damageAfterCritUpgrade }}
-                            </td>
-                            <td class="px-4 py-2" :class="{ 'text-green-600': critEfficiency === bestEfficiency }">
-                                {{ critEfficiency }}
-                            </td>
-                            <td class="px-4 py-2 bg-blue-50">
-                                <input type="number" v-model="desiredCrit" @change="updateEverything" min="0"
-                                       max="9999" tabindex="22"
-                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                            </td>
-                            <td class="px-4 py-2 bg-blue-50 border-r-2 border-blue-200">
-                                {{ calculateUpgradeCost(CRIT, crit, desiredCrit) }}
-                            </td>
-                            <td class="px-4 py-2 bg-green-50">
-                                <input type="number" v-model="desired2Crit" @change="updateEverything" min="0"
-                                       max="9999" tabindex="29"
-                                       class="border rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-                            </td>
-                            <td class="px-4 py-2 bg-green-50">
-                                {{ calculateUpgradeCost(CRIT, crit, desired2Crit) }}
-                            </td>
-                        </tr>
 
 
                         <!-- Total Cost row -->
